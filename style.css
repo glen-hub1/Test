@@ -1,0 +1,159 @@
+/* ---------- Base ---------- */
+body {
+  margin: 0;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  background-color: #fff8f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* ---------- Header ---------- */
+header {
+  text-align: center;
+  background: linear-gradient(135deg, #ffa07a, #ff7f50);
+  color: white;
+  padding: 2rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.4rem;
+}
+
+header p {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* ---------- Search Section ---------- */
+#searchSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  flex-wrap: wrap;
+}
+
+#searchInput {
+  width: 280px;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+#searchBtn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff7f50;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#searchBtn:hover {
+  background-color: #ff6330;
+}
+
+/* ---------- Results Grid ---------- */
+#results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---------- Recipe Card ---------- */
+.recipe {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recipe:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.recipe img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.recipe h2 {
+  font-size: 1.3rem;
+  margin: 1rem;
+  color: #ff6330;
+}
+
+.recipe h4 {
+  margin: 0.5rem 1rem;
+  font-size: 1.1rem;
+  color: #444;
+}
+
+.recipe ul {
+  margin: 0 1rem 1rem 2rem;
+  padding: 0;
+  list-style-type: disc;
+}
+
+.recipe p {
+  margin: 0 1rem 1rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.recipe .link {
+  text-decoration: none;
+  background-color: #ffa07a;
+  color: white;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: background 0.3s;
+}
+
+.recipe .link:hover {
+  background-color: #ff6330;
+}
+
+.recipe button {
+  background-color: #ff7f50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.recipe button:hover {
+  background-color: #ff6330;
+}
+
+/* ---------- Footer ---------- */
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #ffeae1;
+  color: #333;
+  font-size: 0.9rem;
+  margin-top: 3rem;
+}
+
+footer p {
+  margin: 0;
+}
