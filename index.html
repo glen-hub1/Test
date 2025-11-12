@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recipe Book</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --muted:#6b7280; --accent:#2563eb;
+    }
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+         margin:0;background:var(--bg);color:#111;display:flex;min-height:100vh;}
+    .app{max-width:1100px;margin:auto;padding:24px;width:100%;}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px;}
+    h1{margin:0;font-size:1.6rem;}
+    .controls{display:flex;gap:8px;align-items:center;margin-left:auto;}
+    button{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,.12)}
+    input[type="search"]{padding:8px;border-radius:8px;border:1px solid #ddd}
+    .layout{display:grid;grid-template-columns:360px 1fr;gap:18px;}
+    .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,.06)}
+    .recipe-list{display:flex;flex-direction:column;gap:8px;max-height:72vh;overflow:auto;padding-right:6px;}
+    .recipe-card{padding:10px;border-radius:10px;border:1px solid #f0f0f3;background:linear-gradient(180deg,#fff,#fcfdff);display:flex;justify-content:space-between;align-items:start;gap:8px}
+    .recipe-card h3{margin:0;font-size:1rem}
+    .meta{color:var(--muted);font-size:.85rem}
+    .main{display:flex;flex-direction:column;gap:12px;}
+    form .row{display:flex;gap:8px}
+    label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px}
+    input, textarea, select{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e9ef;font-size:.95rem}
+    textarea{min-height:110px;resize:vertical}
+    .actions{display:flex;gap:8px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .small{font-size:.85rem;color:var(--muted)}
+    .empty{padding:18px;text-align:center;color:var(--muted)}
+    .tags{display:flex;gap:6px;flex-wrap:wrap}
+    .tag{background:#f1f5ff;color:#1e3a8a;padding:4px 8px;border-radius:999px;font-size:.8rem}
+    .recipe-detail img{max-width:100%;border-radius:10px;margin-top:8px}
+    footer{margin-top:18px;color:var(--muted);font-size:.85rem;text-align:center}
+    @media(max-width:900px){.layout{grid-template-columns:1fr;}.controls{margin-top:8px;}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🍴 Recipe Book</h1>
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search by title or ingredient..." />
+        <button id="newBtn">+ New</button>
+        <button id="exportBtn" class="ghost">Export</button>
+        <button id="importBtn" class="ghost">Import</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="recipe-list" id="list"></div>
+        <div class="empty" id="emptyHint">No recipes yet — click “New” to add one.</div>
+      </aside>
+
+      <main class="panel main">
+        <div id="editor">
+          <form id="recipeForm">
+            <div class="grid-2">
+              <div>
+                <label for="title">Title</label>
+                <input id="title" required />
+              </div>
+              <div>
+                <label for="prepTime">Prep time (e.g. 15 min)</label>
+                <input id="prepTime" />
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:8px">
+              <div>
+                <label for="ingredients">Ingredients (one per line)</label>
+                <textarea id="ingredients" placeholder="e.g. 2 eggs"></textarea>
+              </div>
+              <div>
+                <label for="steps">Steps (one step per line)</label>
+                <textarea id="steps" placeholder="e.g. Preheat oven"></textarea>
+              </div>
+            </div>
+
+            <div style="margin-top:8px">
+              <label for="notes">Notes / Tags (comma separated)</label>
+              <input id="notes" placeholder="dessert, vegan, quick" />
+            </div>
+
+            <div style="margin-top:8px" class="row">
+              <div style="flex:1">
+                <label for="image">Image (optional)</label>
+                <input id="image" type="file" accept="image/*" />
+              </div>
+              <div style="width:140px">
+                <label class="small">Preview</label>
+                <div id="imgPreview" style="height:58px;border-radius:8px;border:1px dashed #e6e9ef;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--muted);overflow:hidden">—</div>
+              </div>
+            </div>
+
+            <div class="actions" style="margin-top:12px">
+              <button type="submit" id="saveBtn">Save Recipe</button>
+              <button type="button" id="cancelBtn" class="ghost">Cancel</button>
+              <button type="button" id="printBtn" class="ghost">Print</button>
+            </div>
+
+            <input type="hidden" id="editingId" />
+          </form>
+        </div>
+
+        <div id="detail" style="display:none">
+          <div class="recipe-detail" id="detailContent"></div>
+          <div style="margin-top:8px" class="actions">
+            <button id="editBtn">Edit</button>
+            <button id="deleteBtn" class="ghost">Delete</button>
+            <button id="backBtn" class="ghost">Back</button>
+          </div>
+        </div>
+        <footer>
+          Built for practicing — recipes are stored in your browser only.
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Simple Recipe Book using localStorage
+    const LS_KEY = 'recipeBook_v1';
+    let recipes = [];
+
+    // Elements
+    const listEl = document.getElementById('list');
+    const emptyHint = document.getElementById('emptyHint');
+    const searchEl = document.getElementById('search');
+    const newBtn = document.getElementById('newBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+
+    const editor = document.getElementById('editor');
+    const detail = document.getElementById('detail');
+    const detailContent = document.getElementById('detailContent');
+
+    const form = document.getElementById('recipeForm');
+    const titleEl = document.getElementById('title');
+    const prepTimeEl = document.getElementById('prepTime');
+    const ingredientsEl = document.getElementById('ingredients');
+    const stepsEl = document.getElementById('steps');
+    const notesEl = document.getElementById('notes');
+    const imageEl = document.getElementById('image');
+    const imgPreview = document.getElementById('imgPreview');
+    const editingIdEl = document.getElementById('editingId');
+
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const backBtn = document.getElementById('backBtn');
+
+    // Helpers
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+    function load() {
+      try {
+        recipes = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+      } catch(e) { recipes = []; }
+    }
+    function save() {
+      localStorage.setItem(LS_KEY, JSON.stringify(recipes));
+    }
+    function renderList(filter='') {
+      listEl.innerHTML = '';
+      const f = filter.trim().toLowerCase();
+      const shown = recipes.filter(r => {
+        if(!f) return true;
+        if(r.title.toLowerCase().includes(f)) return true;
+        if(r.ingredients.join(' ').toLowerCase().includes(f)) return true;
+        if((r.tags||[]).join(' ').toLowerCase().includes(f)) return true;
+        return false;
+      });
+      if(shown.length === 0) {
+        emptyHint.style.display = 'block';
+      } else {
+        emptyHint.style.display = 'none';
+      }
+      shown.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'recipe-card';
+        el.innerHTML = `
+          <div style="flex:1">
+            <h3>${escapeHtml(r.title)}</h3>
+            <div class="meta">${escapeHtml(r.prepTime || '')} • ${escapeHtml((r.tags||[]).join(', '))}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <button data-id="${r.id}" class="viewBtn ghost">View</button>
+            <div class="small">${r.ingredients.length} ingredient(s)</div>
+          </div>
+        `;
+        listEl.appendChild(el);
+      });
+
+      // attach view handlers
+      document.querySelectorAll('.viewBtn').forEach(b => b.addEventListener('click', e=>{
+        const id = e.currentTarget.dataset.id;
+        showDetail(id);
+      }));
+    }
+
+    function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function showEditor(clear=false) {
+      detail.style.display = 'none';
+      editor.style.display = 'block';
+      if(clear) {
+        form.reset();
+        imgPreview.innerHTML = '—';
+        editingIdEl.value = '';
+      }
+    }
+
+    function showDetail(id) {
+      const r = recipes.find(x=>x.id===id);
+      if(!r) return;
+      editor.style.display = 'none';
+      detail.style.display = 'block';
+      detailContent.innerHTML = `
+        <h2>${escapeHtml(r.title)}</h2>
+        <div class="meta">${escapeHtml(r.prepTime || '')} • ${escapeHtml((r.tags||[]).join(', '))}</div>
+        ${r.image ? `<img src="${r.image}" alt="recipe image" />` : ''}
+        <h3>Ingredients</h3>
+        <ul>${r.ingredients.map(i=>`<li>${escapeHtml(i)}</li>`).join('')}</ul>
+        <h3>Steps</h3>
+        <ol>${r.steps.map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ol>
+        ${r.notes ? `<h3>Notes</h3><p>${escapeHtml(r.notes)}</p>` : ''}
+      `;
+      // store current id on buttons
+      editBtn.dataset.id = id;
+      deleteBtn.dataset.id = id;
+    }
+
+    function renderInitial() {
+      load();
+      renderList();
+    }
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      saveBtn.disabled = true;
+      const id = editingIdEl.value || uid();
+      const imageData = imageEl.dataset.data || null;
+      const recipe = {
+        id,
+        title: titleEl.value.trim(),
+        prepTime: prepTimeEl.value.trim(),
+        ingredients: ingredientsEl.value.split('\n').map(s=>s.trim()).filter(Boolean),
+        steps: stepsEl.value.split('\n').map(s=>s.trim()).filter(Boolean),
+        tags: (notesEl.value||'').split(',').map(s=>s.trim()).filter(Boolean),
+        notes: notesEl.value.trim(),
+        image: imageData,
+        updatedAt: new Date().toISOString()
+      };
+
+      const idx = recipes.findIndex(r=>r.id===id);
+      if(idx >= 0) recipes[idx] = recipe;
+      else recipes.unshift(recipe); // newest first
+      save();
+      renderList(searchEl.value);
+      showDetail(id);
+      saveBtn.disabled = false;
+      // cleanup file input dataset
+      imageEl.value = '';
+      imageEl.dataset.data = '';
+    });
+
+    // New button
+    newBtn.addEventListener('click', ()=> {
+      showEditor(true);
+    });
+
+    // Cancel
+    cancelBtn.addEventListener('click', ()=> {
+      showEditor(true);
+    });
+
+    // Print
+    printBtn.addEventListener('click', ()=>{
+      // create printable view from current form data or detail
+      const id = editingIdEl.value;
+      if(id) {
+        // build from form inputs
+        const content = `<div style="font-family:Inter,Arial"><h1>${escapeHtml(titleEl.value)}</h1>
+          <div>${escapeHtml(prepTimeEl.value)}</div>
+          <h3>Ingredients</h3><ul>${ingredientsEl.value.split('\n').map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul>
+          <h3>Steps</h3><ol>${stepsEl.value.split('\n').map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ol></div>`;
+        openPrintWindow(content);
+      } else if(detail.style.display !== 'none') {
+        openPrintWindow(detailContent.innerHTML);
+      } else {
+        alert('Open a recipe or start editing one to print.');
+      }
+    });
+
+    function openPrintWindow(html) {
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Print Recipe</title><style>body{font-family:Arial;padding:20px}</style></head><body>${html}</body></html>`);
+      w.document.close();
+      w.print();
+    }
+
+    // Image preview -> convert to data URL
+    imageEl.addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) { imgPreview.innerHTML = '—'; imageEl.dataset.data = ''; return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        imageEl.dataset.data = reader.result;
+        imgPreview.innerHTML = `<img src="${reader.result}" style="max-height:56px;max-width:100%"/>`;
+      };
+      reader.readAsDataURL(f);
+    });
+
+    // Search
+    searchEl.addEventListener('input', () => renderList(searchEl.value));
+
+    // View/Edit/Delete handlers
+    editBtn.addEventListener('click', (e) => {
+      const id = e.currentTarget.dataset.id;
+      const r = recipes.find(x=>x.id===id);
+      if(!r) return;
+      showEditor();
+      editingIdEl.value = r.id;
+      titleEl.value = r.title;
+      prepTimeEl.value = r.prepTime || '';
+      ingredientsEl.value = r.ingredients.join('\n');
+      stepsEl.value = r.steps.join('\n');
+      notesEl.value = r.notes || '';
+      if(r.image) { imgPreview.innerHTML = `<img src="${r.image}" style="max-height:56px;max-width:100%"/>`; imageEl.dataset.data = r.image; }
+      else { imgPreview.innerHTML = '—'; imageEl.dataset.data = ''; }
+    });
+
+    deleteBtn.addEventListener('click', (e) => {
+      const id = e.currentTarget.dataset.id;
+      if(!confirm('Delete this recipe?')) return;
+      recipes = recipes.filter(r=>r.id!==id);
+      save();
+      renderList(searchEl.value);
+      showEditor(true);
+    });
+
+    backBtn.addEventListener('click', ()=> {
+      showEditor(true);
+    });
+
+    // Export / Import
+    exportBtn.addEventListener('click', ()=>{
+      const data = JSON.stringify(recipes, null, 2);
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `recipes-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', ()=> importFile.click());
+
+    importFile.addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const data = JSON.parse(r.result);
+          if(!Array.isArray(data)) throw new Error('Invalid format');
+          // merge smartly: keep unique ids and prepend imported recipes
+          const existingIds = new Set(recipes.map(x=>x.id));
+          const newOnes = data.filter(x=>x && x.id && !existingIds.has(x.id));
+          recipes = [...newOnes, ...recipes];
+          save();
+          renderList(searchEl.value);
+          alert(`Imported ${newOnes.length} new recipe(s).`);
+        } catch(err) {
+          alert('Failed to import: ' + err.message);
+        }
+      };
+      r.readAsText(f);
+      e.target.value = ''; // reset
+    });
+
+    // keyboard shortcuts: n = new, / focus search
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'n' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); showEditor(true); }
+      if(e.key === '/' && document.activeElement !== searchEl) { e.preventDefault(); searchEl.focus(); }
+    });
+
+    // initial
+    renderInitial();
+  </script>
+</body>
+</html>
